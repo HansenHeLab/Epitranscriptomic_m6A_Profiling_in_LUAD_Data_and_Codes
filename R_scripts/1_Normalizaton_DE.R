@@ -1,5 +1,5 @@
 ##########################################################################
-## This script implements
+## This script implements:
 ## 1. IP and INPUT raw read counts normalizaiton
 ## 2. PCA plots before and after normalization for both IP and INPUT
 ## 3. MA plots between normal and tumor for both IP and INPUT
