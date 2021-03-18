@@ -1,19 +1,18 @@
-
+### pull out m6A peak IP/INPUT measure by Max, Sum
 args <- commandArgs(trailingOnly = TRUE)
-
 input_file <- args[1];
 ip_file <- args[2];
 out_name <- args[3];
 
-
+######  INPUT signal
 input <-read.table(input_file);
 
-# for input 
+# for input
 reg_u <- sort(unique(input$V9));
 cnt <- length(reg_u)
 cov_input_list <- list()
 
-for(i in 1:cnt) 
+for(i in 1:cnt)
 {
 	idx <- reg_u[i] == input$V9;
 	start_c <- input$V14[idx];
@@ -29,8 +28,8 @@ for(i in 1:cnt)
 	{
 		cov_input_list[[i]] <- cov_v;
 	}
-	 else 
-	{ 
+	 else
+	{
 		for (j in 1:length(cov))
 		{
 			start <- max(1, start_c[j]-peak_left+1);
@@ -43,7 +42,8 @@ for(i in 1:cnt)
 
 rm(input);
 
-# for ip 
+#########
+# for ip
 ip <- read.table(ip_file)
 reg_u <- sort(unique(ip$V9));
 cnt <- length(reg_u)
@@ -53,7 +53,7 @@ peak_left_v <-vector();
 chr <- vector();
 strand <- vector()
 
-for(i in 1:cnt) 
+for(i in 1:cnt)
 {
 	idx <- reg_u[i] == ip$V9;
 	start_c <- ip$V14[idx];
@@ -64,17 +64,17 @@ for(i in 1:cnt)
 	peak_right <- ip$V3[idx][1];
 	peak_l <- peak_right - peak_left;
 	cov_v <- rep(0, peak_l);
-		
+
 	chr[i] <- as.character(ip$V1[idx][1]);
-	peak_left_v[i] <- peak_left;	
+	peak_left_v[i] <- peak_left;
 	strand[i] <- as.character(ip$V6[idx][1]);
 
 	if(flag == -1)
 	{
 		cov_ip_list[[i]] <- cov_v;
 	}
-	 else 
-	{ 
+	 else
+	{
 		for (j in 1:length(cov))
 		{
 			start <- max(1, start_c[j]-peak_left+1);
@@ -86,24 +86,24 @@ for(i in 1:cnt)
 }
 rm(ip)
 
+##################
 ## for summit only
 summit_pos = vector();
 summit_fd = vector();
 
-## for peak region mean signal 
+## for peak region mean signal
 peak_ip_pileup <- vector()
 peak_input_pileup <- vector()
 peak_fd = vector();
 
-## for peak reginal sum signal 
+## for peak reginal sum signal
 peak_ip_pileup_sum <- vector()
 peak_input_pileup_sum  <- vector()
 peak_sum_fd = vector();
 
-
 for (i in 1:cnt)
 {
-        ## for summit
+    ## for summit
 	fd_v <- cov_ip_list[[i]]/cov_input_list[[i]];
 	fd_v[is.infinite(fd_v)] <- -1;			# #/0
 	fd_v[is.nan(fd_v)] <- -2;  			# 0/0
@@ -119,7 +119,7 @@ for (i in 1:cnt)
         summit_fd[i] <- fd_max;
 	summit_pos[i] <- peak_left_v[i]+offset-1;
 
-	## for mean 
+	## for mean
 	cov_ip_m <- mean(cov_ip_list[[i]])
         cov_input_m <- mean(cov_input_list[[i]])
 
@@ -127,7 +127,7 @@ for (i in 1:cnt)
         peak_input_pileup[i] <- cov_input_m;
         peak_fd[i] <- cov_ip_m/cov_input_m
 
-	## for sum 
+	## for sum
 	cov_ip_sum <- sum(cov_ip_list[[i]])
         cov_input_sum <- sum(cov_input_list[[i]])
 
@@ -135,10 +135,7 @@ for (i in 1:cnt)
         peak_input_pileup_sum[i] <- cov_input_sum;
         peak_sum_fd[i] <- cov_ip_sum/cov_input_sum
 
-} 
-
+}
 
 out <- cbind(chr,summit_pos, summit_pos+1, summit_fd,  reg_u, strand, peak_ip_pileup, peak_input_pileup, peak_fd, peak_ip_pileup_sum, peak_input_pileup_sum, peak_sum_fd);
-
-
-write.table(out, file=out_name, col.names=TRUE, row.name=FALSE, quote=FALSE, sep="\t");
+write.table(out, file=out_name, col.names=TRUE, row.name=FALSE, quote=FALSE, sep="\t")

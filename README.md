@@ -5,4 +5,4 @@ The data and codes of for the Epitranscriptomic m6A profling and integration wit
 
 ## The Key findings of the project 
 
-![Key_findings](plot/summary_plot.png){width=100%}
+![Key_findings](plot/summary_plot.png)

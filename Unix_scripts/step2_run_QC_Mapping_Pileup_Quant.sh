@@ -1,5 +1,4 @@
 #!/bin/bash
-
 #SBATCH -p himem
 #SABTCH -t 3-0:0:0
 #SBATCH -e ./log/%x-%j.errout
@@ -7,7 +6,6 @@
 #SBATCH --mem=61440M
 
 ################# 
-
 cd ${out_dir}
 
 #################
@@ -34,10 +32,8 @@ index=${db}/star_index
 chrlen=${db}/star_index/chrNameLength.txt
 
 ## CPC MeRip-seq: TruSeq CD Indexes:GATCGGAAGAGCACACGTCTGAACTCCAGTCAC[i7]ATCTCGTATGCCGTCTTCTGCTTG, length = 65
-
 adapter=AGATCGGAAGAGC         # for common sequence for mate1 and mate2
 min_len=50	              # minimum length for the left reads
-
 ext_size=200		      ## pileup extend size
 
 
@@ -116,8 +112,6 @@ infer_experiment.py -r ${gtf_bed} -i ${name}_R2_Aligned.sortedByCoord.out.bam >>
 
 ################################
 ## stand specific infomation ###
-
-
 strand_dir=FR                  # R1R2: FR 
 
 if [ ${strand} == ${strand_dir} ]            ## white space is mandatory
@@ -131,7 +125,6 @@ fi
 
 ##################################################################
 ## switch the flag for the revers mapped mate of the pair-end reads
-
 ## switching flag for reverse mate
 samtools view -h ${mate_rev} > ${name}_rev.sam
 sed 's/0\tchr/1\tchr/' ${name}_rev.sam > ${name}_rev_tmp1.sam
@@ -210,7 +203,6 @@ echo rmdup_minus_strand_reads: `samtools view -c ${name}_rmdup_minus_sorted.bam`
 echo ek12_reads: `samtools view  -c ${name}_ek12.bam` >> ${name}_mapping_summary.txt
 
 
-
 ################################
 ## pileup in normalized bw files
 ################################
@@ -273,8 +265,7 @@ rm ${name}_*_pileup.bw
 #############################
 
 # module load deeptools/3.2.1
-
-# computeMatrix scale-regions  -R ${gtf_p} -S ${name}_sorted_pileup_normed.bw ${name}_rmdup_pileup_normed.bw -o ${name}
+computeMatrix scale-regions  -R ${gtf_p} -S ${name}_sorted_pileup_normed.bw ${name}_rmdup_pileup_normed.bw -o ${name}
 
 
 #############################
@@ -289,11 +280,8 @@ module load HTSeq/0.11.0
 htseq-count -t gene -i gene_name -f bam -r pos -s yes  -q ${name}_sorted_transcriptome.bam  $gtf  > ${name}_htseq_count
 
 
-
 #############################################
 ## bam2cram: saving nearly half storage space
 ############################################
-
-#  samtools view -T $fa -C -o ${name}_sorted.cram  ${name}_sorted.bam
-#  rm ${name}_sorted.bam
-
+samtools view -T $fa -C -o ${name}_sorted.cram  ${name}_sorted.bam
+rm ${name}_sorted.bam
