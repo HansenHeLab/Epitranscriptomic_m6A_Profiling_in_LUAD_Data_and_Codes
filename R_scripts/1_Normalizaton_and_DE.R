@@ -1,16 +1,18 @@
 ##########################################################################
 ## This script implements:
-## 1. IP and INPUT raw read counts normalizaiton
+## 1. IP and INPUT raw read counts normalizaiton (processed results enclosed in data)
 ## 2. PCA plots before and after normalization for both IP and INPUT
-## 3. MA plots between normal and tumor for both IP and INPUT
-## 4. Density plots of RPKM for both IP and INPUT
-## 5. Differential expression analysis between normal and tumor
-## 6. TCGA_LUAD Differential expression analysis between normal and tumor
+## 3. Density plots of RPKM for both IP and INPUT
+## 4. Differential expression analysis between normal and tumor
+## 5. TCGA_LUAD Differential expression analysis between normal and tumor (processed results enclosed in data)
 ##########################################################################
 
 rm(list=ls())
-setwd("/working/dir/")
+#setwd("/Users/yong/OneDrive - UHN/Projects/Epitranscriptomics/LUAD_m6A/Epitranscriptomic_m6A_Profiling_Data_and_Codes/")
 
+setwd("./data")
+
+if(FALSE){
 ##################
 ## load raw counts
 ##################
@@ -100,20 +102,23 @@ ip_count_ercc <- 2^ip_count_log2_ercc -1
 library(DESeq2)
 library("GenomicFeatures")
 
-txdb <- makeTxDbFromGFF(file ="/Users/Yong/Yong/m6a_profiling/1_mapping_quant/5_RNA-seq/hg38_v25_ek12.gtf", format = "gtf")
-#save(txdb, file = "hg38_v25_ek12_txdb.Rdata")
-exonBygene <- exonsBy(txdb, by="gene")
-rm(txdb)
+if(FALSE){
+    txdb <- makeTxDbFromGFF(file ="/Users/Yong/Yong/m6a_profiling/1_mapping_quant/5_RNA-seq/hg38_v25_ek12.gtf", format = "gtf")
+    #save(txdb, file = "hg38_v25_ek12_txdb.Rdata")
+    exonBygene <- exonsBy(txdb, by="gene")
+    rm(txdb)
+    
+    all_gene <- read.table("/Users/Yong/Yong/m6a_profiling/1_mapping_quant/5_RNA-seq/all_gene_list.txt")
+    
+    idx <- match(rownames(input_count_ercc), all_gene$V2)
+    tmp <- all_gene$V1[idx]
+    idx1 <- match(tmp, names(exonBygene))
+    exonBygene_f <- exonBygene[idx1]
+    names(exonBygene_f) <- all_gene$V2[idx]
+    save(exonBygene_f, file = "exonBygene_f.RData")
+  }
 
-all_gene <- read.table("/Users/Yong/Yong/m6a_profiling/1_mapping_quant/5_RNA-seq/all_gene_list.txt")
-idx <- match(rownames(input_count_ercc), all_gene$V2)
-tmp <- all_gene$V1[idx]
-idx1 <- match(tmp, names(exonBygene))
-exonBygene_f <- exonBygene[idx1]
-names(exonBygene_f) <- all_gene$V2[idx]
-
-#######################
-## deseq2 normalization
+load("exonBygene_f.RData")
 
 # for input
 expr <- round(input_count_ercc)
@@ -135,69 +140,96 @@ dds <- estimateSizeFactors(dds)
 ip_count_ercc_deseq <- counts(dds, normalized = T) 
 ip_count_ercc_deseq_rpkm <- fpkm(dds, robust = TRUE)
 
-save(input_count, ip_count, input_count_ercc, input_count_ercc_deseq, ip_count_ercc, ip_count_ercc_deseq, file = "all_count.Rdata")
-save(input_count_ercc_deseq_rpkm, ip_count_ercc_deseq_rpkm, file = "all_rpkm.Rdata")
+#save(input_count, ip_count, input_count_ercc, input_count_ercc_deseq, ip_count_ercc, ip_count_ercc_deseq, file = "all_count.Rdata")
+#save(input_count_ercc_deseq_rpkm, ip_count_ercc_deseq_rpkm, file = "all_rpkm.Rdata")
+
+idx_r1 <- c(30, 50, 51)  # remove tumor46 tumor29 rep
+idx_r2 <- 11   # remove normal 11 ip
+input_count <- input_count[, -idx_r1]
+ip_count <- ip_count[, -idx_r2]
+
+
+# with ercc
+input_count_norm <- input_count_ercc_deseq[, -idx_r1]
+ip_count_norm <- ip_count_ercc_deseq[, -idx_r2]
+
+input_rpkm <- input_count_ercc_deseq_rpkm[, -idx_r1]
+ip_rpkm <- ip_count_ercc_deseq_rpkm[, -idx_r2]
+
+col_n <- strsplit(colnames(input_count), "_")
+name <- vector()
+for (i in 1:length(col_n))
+{
+  name[i] <- col_n[[i]][1]
 }
+
+
+colnames(input_count) <- colnames(input_count_norm) <- colnames(input_rpkm)<- name
+colnames(ip_count) <- colnames(ip_count_norm) <- colnames(ip_rpkm)<- name
+
+save(input_count, ip_count, input_count_norm, ip_count_norm, input_rpkm, ip_rpkm, file = "paired_63_count_ercc_deseq.Rdata")
+
+## # without ercc
+#input_count_norm <- input_count_ercc[, -idx_r1]
+# ip_count_norm <- ip_count_ercc[, -idx_r2]
+# save(input_count, ip_count, input_count_norm, ip_count_norm, file = "paired_63_count_ercc.Rdata")
+
+}
+}
+
+load("paired_63_count_ercc_deseq.Rdata")
 
 ##########
 # PCA plot
 ##########
 {
-    
 library(devtools)
 library(ggbiplot)
     
-# extract 63 samples with both ip and input
-idx_r1 <- c(30, 50, 51)  # remove tumor46 tumor29 rep
-idx_r2 <- 11   # remove normal 11 ip
-
-## raw read counts
-input_count <- input_count[, -idx_r1]
-ip_count <- ip_count[, -idx_r2]
-
-## normalized counts
-input_count_norm <- input_count_ercc_deseq[, -idx_r1]
-ip_count_norm <- ip_count_ercc_deseq[, -idx_r2]
-
 ##########################################
 ## PCA plot before and after normalization
 ### with split screen
 pca.plot <- function(count_l, name, file_n, shape, col_ip, col_input)
 {
-    pdf(file_n, height = 5.5 , width = 5.5)
-    split.screen( figs = c(2, 2))
-    for ( i in 1:length(count_l))
+  pdf(file_n, height = 5.5 , width = 5.5)
+  split.screen( figs = c(2, 2))
+  for ( i in 1:length(count_l))
+  {
+    expr <- count_l[[i]]
+    N = ncol(expr)
+    idx <- rowSums(expr > 1) == ncol(expr)
+    expr <- expr[idx, ]
+    all_pca <- prcomp(t(expr), center = T, scale.=T)
+    
+    screen(i)
+    if (i==2| i==4)
     {
-        expr <- count_l[[i]]
-        N = ncol(expr)
-        idx <- rowSums(expr > 1) == ncol(expr)
-        expr <- expr[idx, ]
-        all_pca <- prcomp(t(expr), center = T, scale.=T)
-        
-        screen(i)
-        if (i==2| i==4)
-        {
-            par(mar = c(3, 3, 2, 0.5), mgp  = c(2, 0.75, 0))
-            plot(all_pca$x[, 1], all_pca$x[, 2], xlab = "PC1", ylab = "PC2", pch = shape, col = col_input, main = name[i], ylim = c(-200, 120), xlim = c(-180, 180))
-            legend(x = 70, y = -130,c("Normal","Tumor"),pch=c(0,1), cex = 0.65)
-            
-        } else {
-            par(mar = c(3, 3, 2, 0.5), mgp  = c(2, 0.75, 0))
-            plot(all_pca$x[, 1], all_pca$x[, 2], xlab = "PC1", ylab = "PC2", pch = shape, col = col_ip, main = name[i], ylim = c(-100, 180), xlim = c(-100, 180))
-            legend(x = 90, y = 180,c("Normal","Tumor"),pch=c(0,1), cex = 0.65)       
-        }
-        #text(x = all_pca$x[, 1], y = all_pca$x[, 2], labels = rownames(all_pca$x), pos = 3)	
-        
+      par(mar = c(3, 3, 2, 0.5), mgp  = c(2, 0.75, 0))
+      plot(all_pca$x[, 1], all_pca$x[, 2], xlab = "PC1", ylab = "PC2", pch = shape, col = col_input, main = name[i], ylim = c(-200, 120), xlim = c(-180, 180))
+      legend(x = 70, y = -130,c("Normal","Tumor"),pch=c(0,1), cex = 0.65)
+      
+    } else {
+      par(mar = c(3, 3, 2, 0.5), mgp  = c(2, 0.75, 0))
+      plot(all_pca$x[, 1], all_pca$x[, 2], xlab = "PC1", ylab = "PC2", pch = shape, col = col_ip, main = name[i], ylim = c(-100, 180), xlim = c(-100, 180))
+      legend(x = 90, y = 180,c("Normal","Tumor"),pch=c(0,1), cex = 0.65)       
     }
-    close.screen(all = TRUE)
-    dev.off()
+    #text(x = all_pca$x[, 1], y = all_pca$x[, 2], labels = rownames(all_pca$x), pos = 3)	
+    
+  }
+  close.screen(all = TRUE)
+  dev.off()
 }
+
+## tumor and normal together : 63 with outliers
 
 ## color and shape: 
 name <- c( "IP_before_Normalization", "Input_before_Normalization",  "IP_after_Normalization", "Input_after_Normalization")
 col_n <- c(rep("firebrick4", 5), rep("deepskyblue4", 5))       # batch1: normal01-05;   batch2: normal06-10
-batch_c <- read.table("/Users/Yong/Yong/m6a_profiling/1_mapping_quant/5_RNA-seq/seq_batches_53.txt", header = T)
+
+batch_c <- read.table("seq_batches_53.txt", header = T)
+
 idx_s <- match(colnames(input_count)[11:63], rownames(batch_c))
+
 col_tip <- as.character(batch_c$col_tip[idx_s])
 col_tinput <- as.character(batch_c$col_tinput[idx_s])
 
@@ -206,81 +238,46 @@ col_input <- c(col_n, col_tinput)
 shape <- c(rep(0, 10), rep(1, 53))
 
 ## tumor and normal together
-count_all <- list( ip_count, input_count,  ip_count_norm, input_count_norm)
-pca.plot(count_all, name, "normal_tumor_before_and_after_norm_PCA.pdf", shape, col_ip, col_input)
-}
+count_all <- list(ip_count, input_count,  ip_count_norm, input_count_norm)
+pca.plot(count_all, name, "../Results/normal_tumor_before_and_after_norm_PCA.pdf", shape, col_ip, col_input)
 
-##########################
-# MA plot : tumorvs normal
-##########################
-{
-count_l <- list(ip_count, input_count,  ip_count_norm, input_count_norm)
-name <- c( "ip_tumor_vs_normal", "input_tumor_vs_normal",  "ip_norm_tumor_vs_normal",  "input_norm_tumor_vs_normal")
-L <- length(count_l)
-N <- ncol(input_count)
+## tumor and normal separated : 
+count_n <- list( ip_count[, 1:10], input_count[, 1:10],  ip_count_norm[, 1:10], input_count_norm[, 1:10])
+count_t <- list( ip_count[, 11:63], input_count[, 11:63],  ip_count_norm[, 11:63], input_count_norm[, 11:63])
+# pca.plot(count_n, name, "normal_before_and_after_norm_PCA.pdf", shape, col_n, col_n)
+# pca.plot(count_t, name, "tumor_before_and_after_norm_PCA.pdf", shape,  col_tip, col_tinput)
 
-pdf("normalized_before_after_MAplot.pdf", height = 14 , width = 14)
-split.screen( figs = c(2, 2))
-for ( i in 1:L)
-{
-    normal <- count_l[[i]][, 1:10] + 1
-    tumor <- count_l[[i]][, 11:61] + 1
-    M <- log2(rowMedians(tumor)/rowMedians(normal))
-    A <- (1/2) * log2(rowMedians(tumor)*rowMedians(normal))
-    
-    screen(i)
-    plot(A, M, xlab = "A", ylab = "M", main = name[i])
-    
-    idx1 <- is.na(A) | is.infinite(A)
-    idx2 <-  is.na(M) | is.infinite(M)
-    idx <- idx1&idx2
-    A <- A[!idx]
-    M <- M[!idx]
-    
-    abline(h = 0, lty = 2)
-    reg <- lm(M~A)
-    abline(a = reg$coefficients[1], b = reg$coefficients[2], col = "red")
-}
-close.screen(all = TRUE)
+#################################################
+#### afetr normalization only
+## IP
+expr <- ip_count_norm
+N = ncol(expr)
+idx <- rowSums(expr > 1) == ncol(expr)
+expr <- expr[idx, ]
+all_pca <- prcomp(t(expr), center = T, scale.=T)
+summary(all_pca)
+
+## with labels 
+pdf(file = "../Results/IP_after_Noramlization_PCA.pdf", width = 3, height = 3)
+par(mar = c(3, 3, 2, 0.5), mgp  = c(2, 0.75, 0))
+plot(all_pca$x[, 1], all_pca$x[, 2], xlab = "PC1", ylab = "PC2", pch = shape, col = col_ip, ylim = c(-100, 160), xlim = c(-100, 100))   
+#text(x = all_pca$x[, 1], y = all_pca$x[, 2], labels = rownames(all_pca$x), pos = 3)
 dev.off()
-}
 
-#############################
-# log2(RPKM + 1) density plot
-#############################
-{
-library("ggplot2")
-input_rpkm <- input_count_ercc_deseq_rpkm[, -idx_r1]
-ip_rpkm <- ip_count_ercc_deseq_rpkm[, -idx_r2]
+## INPUT
+expr <- input_count_norm
+N = ncol(expr)
+idx <- rowSums(expr > 1) == ncol(expr)
+expr <- expr[idx, ]
+all_pca <- prcomp(t(expr), center = T, scale.=T)
+summary(all_pca)
 
-rpkm_list <- list(ip_rpkm, input_rpkm)
-L <- length(rpkm_list)
-prefix <- c("ip", "input")
+pdf(file = "../Results/INPUT_after_Noramlization_PCA.pdf", width = 3, height = 3)
+par(mar = c(3, 3, 2, 0.5), mgp  = c(2, 0.75, 0))
+plot(all_pca$x[, 1], all_pca$x[, 2], xlab = "PC1", ylab = "PC2", pch = shape, col = col_input, ylim = c(-220, 70), xlim = c(-150, 100))  
+#text(x = all_pca$x[, 1], y = all_pca$x[, 2], labels = rownames(all_pca$x), pos = 3)
+dev.off()
 
-for(i in 1: L)
-{
-    expr_in <- rpkm_list[[i]]
-    N <- ncol(expr_in)
-    idx <- rowSums(expr_in > 1) == N
-    expr_in <- log2(expr_in[idx, ])
-    
-    M <- nrow(expr_in)
-    expr <- vector()
-    group <- factor()
-    for (i in 1: N )
-    {
-        expr <- c(expr, expr_in[, i])
-        tag <- colnames(expr_in)[i]
-        group  <- c(group, rep(tag, M))
-    } 
-    
-    dat <- data.frame(expr, group)
-    g <- ggplot(dat, aes(expr, col = group)) + geom_density(alpha = 0.2) +scale_x_continuous(name = "log2(RPKM + 1)") 
-    g <- g + theme(legend.direction = 'horizontal', legend.position = 'top')+  theme_bw() 
-    g <- g + theme(axis.line = element_line(colour = "black"),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),panel.border =  element_blank(),   
-                                                                                                                                                                                                             panel.background = element_blank())
-    ggsave(filename=paste0(prefix[i], "_rpkm_density.pdf"), width = 6, heigh = 4.5)
-}
 }
 
 #######################################
@@ -303,7 +300,7 @@ res_2 <- results(dds_2)
 input_de <- res_1
 ip_de <- res_2
 
-save(input_de, ip_de, file = "input_ip_deseq_de.Rdata")
+#save(input_de, ip_de, file = "input_ip_deseq_de.Rdata")
 }
 
 
@@ -311,12 +308,12 @@ save(input_de, ip_de, file = "input_ip_deseq_de.Rdata")
 # GDC TCGA LUAD
 # publisehd data
 ###############
-{
+if(FALSE){
 
 ##################################################   
 ## split published tcga luad into normal and tumor 
 {
-tcga <- read.table("/Users/Yong/Yong/m6a_profiling/1_mapping_quant/5_RNA-seq/TCGA/GDC_LUAD/TCGA-LUAD.htseq_counts.tsv", header = T)
+tcga <- read.table("../TCGA/GDC_LUAD/TCGA-LUAD.htseq_counts.tsv", header = T)
 #tcga <- read.table("/Users/Yong/Yong/m6a_profiling/8_RNA-seq/TCGA/GDC_LUAD/TCGA-LUAD.htseq_fpkm.tsv", header = T)
 ## have done log2( * + 1) transform
 
@@ -330,7 +327,7 @@ for (i in 1:M)
     en_id_o[i] <- en_id_t[[i]][1]
 }
 
-g_name <- read.table("/Users/Yong/Yong/m6a_profiling/1_mapping_quant/5_RNA-seq/TCGA/GDC_LUAD/GDC_gene_ID_with_name.txt")
+g_name <- read.table("../TCGA/GDC_LUAD/GDC_gene_ID_with_name.txt")
 idx_m <- match(g_name$V1, en_id_o)
 tcga <- tcga[idx_m, ]
 
@@ -362,6 +359,7 @@ col_c[!idx_c] <- "red"	# normal
 save(tcga, tcga_type,  file="/Users/Yong/Yong/m6a_profiling/1_mapping_quant/5_RNA-seq/TCGA/GDC_LUAD/tcga_htseq_count_log2.Rdata")  
 }
 
+  
 ####################################  
 # DEGseq2 normaliztion and DEGs
 {
@@ -377,7 +375,7 @@ save(tcga, tcga_type,  file="/Users/Yong/Yong/m6a_profiling/1_mapping_quant/5_RN
     write.csv(res, file = "tcga_sample_DESeq_DE.csv")
     
     ## PCA plot before and after normalization 
-    {
+    if(FALSE) {
     pdf("TCGA_normalized_before_after_pca.pdf", height = 14 , width = 7)
     split.screen( figs = c(2, 1))
 

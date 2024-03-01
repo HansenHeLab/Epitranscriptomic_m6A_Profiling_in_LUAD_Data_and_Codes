@@ -1,0 +1,8 @@
+Genomic_Feature Peaks_cnt Region_len Density normal_only
+TSS_200	95	18905	0.00502513
+5UTR	62	23265	0.00266495
+CDS	151	142125	0.00106245
+stop_codon_up_200	59	11741	0.00502513
+stop_codon	1	3	0.333333
+stop_codon_down_200	73	14527	0.00502513
+3UTR	156	487376	0.000320081

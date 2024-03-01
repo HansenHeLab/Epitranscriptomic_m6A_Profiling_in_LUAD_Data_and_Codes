@@ -1,8 +1,15 @@
 ## Epitranscriptomic_m6A_Profiling_Data_and_Codes
 
-The data and codes of for the Epitranscriptomic m6A profling and integration with multiomics in lung cancer  
+## About
+This repository is a collection of and data and scripts for the m6A profiling in LUAD. 
+The structure of the repository is as follows:
 
+  - data: These are public and processed data will be used in the enclosed scripts.  
+  - Resutls: These are the figures in the manuscript  
+  - R_scripts: These are R scripts used to generate primary results and figures in Results
+  - Unix_Scripts: These are ordered scripts for to process the m6A-seq data. 
+  
 
-## The Key findings of the project 
+Contact: Yong Zeng
 
-![Key_findings](plot/summary_plot.png)
+Email: yzeng@uhnresearch.ca

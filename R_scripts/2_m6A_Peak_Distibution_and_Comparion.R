@@ -1,17 +1,14 @@
 ##########################################################################
 ## This script implements:
-## 1. m6A peak counts, overlapping comparison bwteen normal and tumor
+## 1. m6A peak counts, overlapping comparison between normal and tumor
 ## 2. peaks distribution in protein and lincRNA & peak length distribution
 ## 3. gene with common peaks and unique peaks
-## 4. reoccurence rate for m6a residuals in tumor and normal 
-## 5. gene expression comparion among gene with common and specific peak
-## 6. association between peak counts and clinical information
+## 4. recurrence rate for m6a residuals in tumor and normal 
 ##########################################################################
 
 rm(list=ls())
-setwd("/work/dir/")
+setwd("./data")
 
-library("heatmap.plus")
 library("gplots")
 library("ggplot2")
 library("matrixStats")
@@ -39,7 +36,7 @@ g <- ggplot(peak_cnt, aes(x = sample_type, y = count, col = sample_type)) + geom
 g <- g + geom_point(aes(col = sample_type), position = position_jitter(width = 0.3)) 
 g <- g + theme_bw() + theme(axis.line = element_line(colour = "black"),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),panel.border =  element_blank(),  panel.background = element_blank()) 
 g <- g + scale_color_manual( values = c("cadetblue3", "coral2")) + theme(legend.position = "none")
-ggsave("peak_count_boxplot_61samples.pdf", width = 2.5, height = 3, units = "in")
+ggsave("../Results/peak_count_boxplot.pdf", width = 2.5, height = 3, units = "in")
 }
 
 #######################################
@@ -65,35 +62,8 @@ g <- ggplot(dat, aes(x = group, y = overlap_perc, col = group, alpha = 1)) +
     geom_violin(aes( fill=group), trim=FALSE) + geom_boxplot(width=0.2) + theme_classic()
 g <- g + scale_color_manual( values = c("cadetblue3", "coral2"))  + scale_fill_manual( values = c("cadetblue3", "coral2"))
 g <- g + theme(legend.position = "none")
-ggsave("peak_pairwise_overlap_percentage_violin_plot.pdf", width = 2.5, height = 3, units = "in")
+ggsave("../Results/peak_pairwise_overlap_percentage_violin_plot.pdf", width = 2.5, height = 3, units = "in")
 
-## boxplot
-perc <- list(normal_perc, tumor_perc)
-col_f <- c("cadetblue3", "coral2")
-pdf(file = "peak_pairwise_overlap_percentage_boxplot.pdf", height = 4, width = 3)
-boxplot(perc, col = col_f)
-dev.off()
-}
-
-#########################################################
-# for subsmapling tumor sample to the same size of normal 
-{
-    peak_cmp <- read.table("subsample_10tumor_peak_count_cmp.txt", header = T)
-    idx <- peak_cmp$type == "total"
-    peak_cmp <- peak_cmp[!idx, ]
-    
-    g <- ggplot(peak_cmp, aes(x = type, y = peak_count, fill = type)) + geom_boxplot(outlier.shape = NA)  +  theme_bw() + theme(axis.line = element_line(colour = "black"),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),panel.border =  element_blank(),  panel.background = element_blank()) 
-    g <- g + scale_fill_manual( values = c("cadetblue3", "grey", "coral2"))
-    ggsave("peak_cmp_boxplot_subsampling1000.pdf", width = 10, height = 8, units = "cm")
-    
-    peak_cmp_se <- summarySE(data = peak_cmp, measurevar = "peak_count", groupvars = "type" )
-    
-    g <- ggplot(peak_cmp_se, aes(x = type, y = peak_count, fill = type)) + geom_bar(position = position_dodge(), stat = "identity") 
-    g <- g +  geom_errorbar(aes(ymin = peak_count - sd, ymax = peak_count + sd), width = .2, position=position_dodge(.9))
-    g <- g + theme_bw() + theme(axis.line = element_line(colour = "black"),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),panel.border =  element_blank(),  panel.background = element_blank()) 
-    g <- g + scale_fill_manual( values = c("cadetblue3", "grey", "coral2"))  + theme(legend.position = "none")
-    
-    ggsave("peak_cmp_barplot_subsampling1000.pdf", width = 3, height = 1.6, units = "in")
 }
 
 }
@@ -107,7 +77,7 @@ dev.off()
 ## look at the pc gene, lincRNA and other genes with m6A
 {
 gene_dis <- read.table("cat_peaks_gene_type_summary_barplot.txt", header = T, sep = "\t")
-source("/Users/Yong/Yong/R/functions/summarySE.R")     # barplot with error bar
+source("../R_scripts/functions/summarySE.R")     # barplot with error bar
 
 mean(gene_dis$gene_count[1:10])
 mean(gene_dis$gene_count[11:61])
@@ -160,38 +130,37 @@ g <- ggplot(gene_dis_se, aes(x = class, y = gene_count, fill = class)) + geom_ba
 g <- g +  geom_errorbar(aes(ymin = gene_count - sd, ymax = gene_count + sd), width = .2, position=position_dodge(.9))
 g <- g + theme_bw() + theme(axis.line = element_line(colour = "black"),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),panel.border =  element_blank(),  panel.background = element_blank()) 
 g <- g + scale_fill_manual(values = rep(c("cadetblue3", "coral2"), 3)) + ylim(0, 6000)
-ggsave("cat_peaks_gene_type_summary_barplot.pdf", width = 4, height = 3, units = "in")
+ggsave("../Results/cat_peaks_gene_type_summary_barplot.pdf", width = 4, height = 3, units = "in")
 }
 
 ############################
 ## peak length distribution
 {
-tumor_a  <- read.table("/Users/Yong/Yong/m6a_profiling/2_peak_calling/1_peaks/merge/bed30_61/0_merged_peaks/tumor_merge.bed")
-normal_a <- read.table("/Users/Yong/Yong/m6a_profiling/2_peak_calling/1_peaks/merge/bed30_61/0_merged_peaks/normal_merge.bed")
-tumor_o  <- read.table("/Users/Yong/Yong/m6a_profiling/2_peak_calling/1_peaks/merge/bed30_61/0_merged_peaks/tumor_only.bed")
-normal_o <- read.table("/Users/Yong/Yong/m6a_profiling/2_peak_calling/1_peaks/merge/bed30_61/0_merged_peaks/normal_only.bed")
-tumor_s  <- read.table("/Users/Yong/Yong/m6a_profiling/2_peak_calling/1_peaks/merge/bed30_61/0_merged_peaks/tumor_shared.bed")
-normal_s <- read.table("/Users/Yong/Yong/m6a_profiling/2_peak_calling/1_peaks/merge/bed30_61/0_merged_peaks/normal_shared.bed")
+tumor_a  <- read.table("./0_merged_peaks/tumor_merge.bed")
+normal_a <- read.table("./0_merged_peaks/normal_merge.bed")
+tumor_o  <- read.table("./0_merged_peaks/tumor_only.bed")
+normal_o <- read.table("./0_merged_peaks/normal_only.bed")
+tumor_s  <- read.table("./0_merged_peaks/tumor_shared.bed")
+normal_s <- read.table("./0_merged_peaks/normal_shared.bed")
 
-tumor_ap  <- read.table("/Users/Yong/Yong/m6a_profiling/2_peak_calling/1_peaks/merge/bed30_61/0_merged_peaks/tumor_merge_protein.bed")
-normal_ap <- read.table("/Users/Yong/Yong/m6a_profiling/2_peak_calling/1_peaks/merge/bed30_61/0_merged_peaks/normal_merge_protein.bed")
-tumor_al  <- read.table("/Users/Yong/Yong/m6a_profiling/2_peak_calling/1_peaks/merge/bed30_61/0_merged_peaks/tumor_merge_lincRNA.bed")
-normal_al <- read.table("/Users/Yong/Yong/m6a_profiling/2_peak_calling/1_peaks/merge/bed30_61/0_merged_peaks/normal_merge_lincRNA.bed")
+tumor_ap  <- read.table("./0_merged_peaks/tumor_merge_protein.bed")
+normal_ap <- read.table("./0_merged_peaks/normal_merge_protein.bed")
+tumor_al  <- read.table("./0_merged_peaks/tumor_merge_lincRNA.bed")
+normal_al <- read.table("./0_merged_peaks/normal_merge_lincRNA.bed")
 
 ag <- c(length(unique(normal_a$V4)), length(unique(tumor_a$V4)))
 apg <- c(length(unique(normal_ap$V4)), length(unique(tumor_ap$V4)))
 alg <- c(length(unique(normal_al$V4)), length(unique(tumor_al$V4)))
 all <- rbind(ag, apg, alg)
 
-tumor_op  <- read.table("/Users/Yong/Yong/m6a_profiling/2_peak_calling/1_peaks/merge/bed30_61/0_merged_peaks/tumor_only_protein.bed")
-normal_op <- read.table("/Users/Yong/Yong/m6a_profiling/2_peak_calling/1_peaks/merge/bed30_61/0_merged_peaks/normal_only_protein.bed")
-tumor_ol  <- read.table("/Users/Yong/Yong/m6a_profiling/2_peak_calling/1_peaks/merge/bed30_61/0_merged_peaks/tumor_only_lincRNA.bed")
-normal_ol <- read.table("/Users/Yong/Yong/m6a_profiling/2_peak_calling/1_peaks/merge/bed30_61/0_merged_peaks/normal_only_lincRNA.bed")
+tumor_op  <- read.table("./0_merged_peaks/tumor_only_protein.bed")
+normal_op <- read.table("./0_merged_peaks/normal_only_protein.bed")
+tumor_ol  <- read.table("./0_merged_peaks/tumor_only_lincRNA.bed")
+normal_ol <- read.table("./0_merged_peaks/normal_only_lincRNA.bed")
 og <- c(length(unique(normal_o$V4)), length(unique(tumor_o$V4)))
 opg <- c(length(unique(normal_op$V4)), length(unique(tumor_op$V4)))
 olg <- c(length(unique(normal_ol$V4)), length(unique(tumor_ol$V4)))
 only <- rbind(og, opg, olg)
-
 
 ## merged peaks length distribution
 normal_len <- normal_a$V3-normal_a$V2
@@ -203,60 +172,6 @@ hist(log10(tumor_len))
 sum(tumor_len<500)/length(tumor_len)
 }
 
-######################################################################
-# peak summit distribution in protein coding 5 non-overlapping region  
-{
-        file <- list.files(path = ".", pattern = "stat");
-        
-        count <- vector()
-        dens <- vector()
-        class <- vector()
-        group <- vector()
-        sample <- vector()
-        N <- length(file)
-        
-        ref_den <- vector()
-        
-        for (i in 1: N)
-        {
-            tmp <-read.table(file[i], skip=1)
-            
-            tmp[3,2:3] = tmp[3, 2:3] - tmp[4, 2:3]
-            tmp[3,4] = tmp[3, 2]/tmp[3, 3]
-            
-            tmp[5,2:3] = colSums(tmp[4:6,2:3])
-            tmp[5, 4] = tmp[5, 2]/tmp[5, 3]
-            
-            tmp[7,2:3] = tmp[7, 2:3] - tmp[6, 2:3]
-            tmp[7,4] = tmp[7, 2]/tmp[7, 3]
-            
-            tmp_1 = tmp[-c(4,6), ];
-            
-            count <-  c(count, tmp_1$V2)
-            dens <- c(dens, tmp_1$V4)
-            class <- c(class, as.character(tmp_1$V1))
-            group <- c(group, rep(substr(file[i], 1, 12), 5))
-            sample[i] <- substr(file[i], 1, 12)
-            
-            ref_den[i] <- sum(tmp$V2)/sum(tmp$V3)
-            
-        }
-        
-        count_m <- matrix(count, 5, N)
-        dens_lm <- -1/log10(matrix(dens, 5, N))
-        enrich <- matrix(dens/(3*ref_den), 5, N)
-        
-        rownames(count_m) <- class[1:5]
-        rownames(dens_lm) <- class[1:5]
-        rownames(enrich) <- class[1:5]
-        colnames(count_m) <- sample
-        colnames(dens_lm) <- sample
-        colnames(enrich) <- sample
-        
-        #write.csv(count_m, file="count_dis.csv")
-        #write.csv(dens_lm, file="log10_dens.csv")
-        write.csv(enrich, file="enrich.csv")
-    }    
 
 ###################
 # merged Guitarplot
@@ -265,8 +180,8 @@ sum(tumor_len<500)/length(tumor_len)
 metaPeakDistributions <-  function(ct, comLength, color, name) 
 {
         library("ggplot2")
-        source("/Users/Yong/Yong/R/functions/summarySE.R")     # barplot with error bar
-        
+        source("../R_scripts/functions/summarySE.R")     # barplot with error bar
+  
         ## for lincRNA
         ct$weight <- ct$count
         ct1 <- ct[ct$category == "mRNA", ]
@@ -335,21 +250,19 @@ metaPeakDistributions <-  function(ct, comLength, color, name)
 }
 
 ## for normal
-load("~/Yong/m6a_profiling/2_peak_calling/6_metagene/peak_distribution/Normal_Metagene_analysis.Rdata")
+load("./0_merged_peaks/Normal_Metagene_analysis.Rdata")
 
 ct = count
 col_n = "cadetblue3"
 col_t = "coral2"
 comLength = c(0.136, 0.459, 0.405)
-metaPeakDistributions(count, comLength, col_n, "Normal")
+metaPeakDistributions(count, comLength, col_n, "../Results/Normal")
 
 ## for tumor
-load("~/Yong/m6a_profiling/2_peak_calling/6_metagene/peak_distribution/Tumor_25S_Metagene_analysis.Rdata")
-t1 <- count
-load("~/Yong/m6a_profiling/2_peak_calling/6_metagene/peak_distribution/Tumor_26S_Metagene_analysis.Rdata")
-t2 <- count
-count_t <- rbind(t1, t2)
-metaPeakDistributions(count_t, comLength, col_t, "Tumor")
+load("./0_merged_peaks/Tumor_Metagene_analysis.Rdata")
+
+ct = count_t
+metaPeakDistributions(count_t, comLength, col_t, "../Results/Tumor")
 
 }
        
@@ -377,7 +290,7 @@ gene.split <- function(gene){
     return(gene_v)
 }
 
-common_g <- read.table("/Users/Yong/Yong/m6a_profiling/2_peak_calling/1_peaks/merge/bed30_61/0_merged_peaks/tumor_shared.bed")
+common_g <- read.table("./0_merged_peaks/tumor_shared.bed")
 common_gl <- gene.split(unique(common_g$V4))
 tumor_gl <- gene.split(unique(tumor_o$V4))
 normal_gl <- gene.split(unique(normal_o$V4))
@@ -419,6 +332,7 @@ common_og <- common_gl[-idx_l]
 
 # for Gprofiler
 ## all genes
+if(FALSE){
 write.table(tumor_gl, quote = F, row.names = F, col.names = F, file = "all_gene_with_tumor_only_peak.txt")
 write.table(normal_gl, quote = F, row.names = F, col.names = F, file = "all_gene_with_normal_only_peak.txt")
 write.table(common_gl, quote = F, row.names = F, col.names = F, file = "all_gene_with_common_peak.txt")
@@ -429,10 +343,11 @@ write.table(tumor_og, quote = F, row.names = F, col.names = F, file = "gene_with
 write.table(normal_og, quote = F, row.names = F, col.names = F, file = "gene_with_normal_only_peak.txt")
 write.table(common_og, quote = F, row.names = F, col.names = F, file = "gene_with_common_only_peak.txt")
 }
+}
 
 
 #########################################################
-## reoccurence rate for m6a residuals in tumor and normal 
+## recurrence rate for m6a residuals in tumor and normal 
 #########################################################
 {
     ## for common peaks tumor / nomal separately
@@ -440,6 +355,7 @@ write.table(common_og, quote = F, row.names = F, col.names = F, file = "gene_wit
     samples <- strsplit(as.character(tumor_s$V5), ",")
     N <- length(samples)
     tumor_peak_ot <- vector()
+    
     for (i in 1: N)
     {
         tumor_peak_ot[i] <- length(unique(samples[[i]]))
@@ -453,6 +369,7 @@ write.table(common_og, quote = F, row.names = F, col.names = F, file = "gene_wit
     {
         normal_peak_ot[i] <- length(unique(samples[[i]]))
     }
+    
     normal_peak_of <- normal_peak_ot/10
     
     peak_of <- c(tumor_peak_of, normal_peak_of)
@@ -462,12 +379,11 @@ write.table(common_og, quote = F, row.names = F, col.names = F, file = "gene_wit
     g <- ggplot(dat, aes(peak_of,fill = peak_g)) + geom_density(alpha = 0.9)  + theme(legend.direction = 'horizontal', legend.position = 'top')+  theme_bw() + theme(axis.line = element_line(colour = "black"),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),panel.border =  element_blank(),panel.background = element_blank()) 
     g <- g + scale_fill_manual( values = c("cadetblue3", "coral2")) 
     g <- g + scale_x_continuous(expand = c(0, 0), name = "m6A peak reoccurence rate") + scale_y_continuous(expand = c(0, 0)) + theme(legend.position = "none")
-    ggsave(filename="m6A peak reoccurence rate_shared_new.pdf" , width = 3, height = 3)
+    ggsave(filename="../Results/m6A peak reoccurence rate_shared_new.pdf" , width = 3, height = 3)
     }
     
-    
     ## for shared common peaks
-    shared_com  <- read.table("/Users/Yong/Yong/m6a_profiling/2_peak_calling/1_peaks/merge/bed30_61/0_merged_peaks/shared_merge.bed")
+    shared_com  <- read.table("./0_merged_peaks/shared_merge.bed")
     samples <- strsplit(as.character(shared_com$V5), ",")
     N <- length(samples)
     shared_com_ot <- vector()
@@ -512,7 +428,7 @@ write.table(common_og, quote = F, row.names = F, col.names = F, file = "gene_wit
     g <- g + scale_fill_manual( values = c("cadetblue3", "coral2"))
     g <- g + scale_x_continuous(expand = c(0, 0), name = "m6A peak reoccurence rate") + scale_y_continuous(expand = c(0, 0)) + theme(legend.position = "none")
     
-    ggsave(filename="m6A peak reoccurence rate_unique.pdf", width = 3, height = 3)
+    ggsave(filename="../Results/m6A peak reoccurence rate_unique.pdf", width = 3, height = 3)
     
     
     ### percentage
@@ -537,318 +453,4 @@ write.table(common_og, quote = F, row.names = F, col.names = F, file = "gene_wit
     
     }
     
-    ## merge uniuqe peaks and common peaks
-    peak_of <- c(tumor_peak_of, normal_peak_of, shared_com_of)
-    peak_g <- c(rep("tumor", length(tumor_peak_of)), rep("normal",length(normal_peak_of)), rep("common",length(shared_com_of))) 
-    dat <- data.frame(peak_of, peak_g)
-    
-    g <- ggplot(dat, aes(peak_of, fill = peak_g)) + geom_density(alpha = 0.9)  + theme(legend.direction = 'horizontal', legend.position = 'top')+  theme_bw() + theme(axis.line = element_line(colour = "black"),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),panel.border =  element_blank(),                                                                                                                                                                      panel.background = element_blank()) 
-    g <- g + scale_fill_manual( values = c("#C79C8D", "cadetblue3", "coral2"))
-    g <- g + scale_x_continuous(expand = c(0, 0), name = "m6A peak reoccurence rate") + scale_y_continuous(expand = c(0, 0)) + theme(legend.position = "none")
-    
-    ggsave(filename="m6A_peak_reoccurence_rate_for_3types_genes.pdf", width = 3, height = 3)
-    
-}
-
-
-#######################################################################
-#### gene expression comparion among gene with common and specific peak 
-#######################################################################
-{
-
-####################
-## all related genes
-{
-load("/Users/Yong/Yong/m6a_profiling/1_mapping_quant/5_RNA-seq/htseq/count/paired_61_rpkm.Rdata")
-
-og <- c(normal_og, tumor_og, common_og)
-l <- length(og)
-l1 <- length(normal_og)
-l2 <- length(tumor_og)
-l3 <- length(common_og)
-
-idx_og <- match(og, rownames(input_rpkm))
-og_expr <- input_rpkm[idx_og, ]
-og_nm <- log2(rowMeans(og_expr[, 1:10]) + 1)
-og_tm <- log2(rowMeans(og_expr[, 11:61]) +1)
-
-og_ntm <- c(og_nm, og_tm)
-og_ntm_g <- as.character(c(rep(3, l1), rep(5, l2), rep(1, l3), rep(4, l1), rep(6, l2), rep(2, l3)))
-
-dat <- data.frame(og_ntm, og_ntm_g)
-g <- ggplot(dat, aes(x = og_ntm_g, y = og_ntm, fill = og_ntm_g, col = og_ntm_g, alpha = 1)) + geom_boxplot(width=0.2, outlier.shape=NA) +  geom_violin(trim=FALSE) 
-g <- g + theme_bw()  + theme(axis.line = element_line(colour = "black"),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),panel.border =  element_blank(),  panel.background = element_blank()) 
-g <- g + scale_fill_manual( values = rep(c("cadetblue3", "coral2"), 3)) + scale_color_manual( values =  rep(c("cadetblue3", "coral2"), 3)) + ylim(0, 8)
-g <- g + theme(legend.position = "none")
-ggsave("gene_expr_tumor_normal_unique_or_common_violin.pdf",  width = 5, height = 3, units = "in")
-
-g <- ggplot(dat, aes(x = og_ntm_g, y = og_ntm, fill = og_ntm_g)) + geom_boxplot(outlier.shape=NA)
-g <- g + theme_bw()  + theme(axis.line = element_line(colour = "black"),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),panel.border =  element_blank(),  panel.background = element_blank()) 
-g <- g + scale_fill_manual( values = rep(c("cadetblue3", "coral2"), 3)) + scale_color_manual( values =  rep(c("cadetblue3", "coral2"), 3)) + ylim(0, 8)
-g <- g + theme(legend.position = "none")
-ggsave("gene_expr_tumor_normal_unique_or_common_boxplot.pdf",  width = 4, height = 3, units = "in")
-
-## wilcox.test 
-wilcox.test(og_nm[1:l1], og_tm[1:l1], alternative = "greater")     # normal only
-wilcox.test(og_nm[(l1+1) : (l-l3)], og_tm[(l1+1) : (l-l3)], alternative = "less")    # tumor only
-wilcox.test(og_nm[(l1+l2+1) : l], og_tm[(l1+l2+1) : l])        # shared
-}
-
-########################################################################
-## by DESeq2 results  : overall gene expression between normal and tumor 
-{
-de_res <- read.csv("/Users/Yong/Yong/m6a_profiling/1_mapping_quant/5_RNA-seq/htseq/count/61_sample_Input_DESeq_DE.csv")
-idx_de <- match(og, de_res$X)       ## matched gene list
-
-## by own test
-og_pad <- de_res$padj [idx_de]
-og_fd <- de_res$log2FoldChange[idx_de]
-
-sum(is.na(og_fd))           # do not include "NA" and "Infinite"
-idx_p <- og_pad < 0.05       #with FDR < 0.05 
-idx_fd <- abs(og_fd) > 1         # 
-idx_de <- idx_p & idx_fd
-
-de <- idx_de
-n_p <- table(de[1:l1])      # for normal
-t_p <- table(de[(l1+1) : (l-l3)])
-c_p <- table(de[(l1+l2+1) : l])
-cmb_p <- rbind(c_p, n_p, t_p)
-
-## foldchange dis
-fd_list <- list(og_fd[1:l1], og_fd[(l1+1) : (l-l3)], og_fd[(l1+l2+1) : l])
-names(fd_list) <- c("normal_only", "tumor_only", "Common")
-
-boxplot(fd_list, outline = F)
-abline(h = c(-1, 1), col = "red", lty = 2)
-
-# non-de de genes
-normal_og_nde <- normal_og[!idx_de[1:l1]]
-normal_og_nde <- normal_og_nde[!is.na(normal_og_nde)]
-tumor_og_nde <- tumor_og[!idx_de[(l1+1):(l-l3)]]
-tumor_og_nde <- tumor_og_nde[!is.na(tumor_og_nde)]
-common_og_nde <- common_og[!idx_de[(l1+l2+1) : l]]
-common_og_nde <- common_og_nde[!is.na(common_og_nde)]
-
-write.table(tumor_og_nde, quote = F, row.names = F, col.names = F, file = "gene_with_tumor_only_peak_nde.txt")
-write.table(normal_og_nde, quote = F, row.names = F, col.names = F, file = "gene_with_normal_only_peak_nde.txt")
-write.table(common_og_nde, quote = F, row.names = F, col.names = F, file = "gene_with_common_only_peak_nde.txt")
-}
-
-###################################################################################
-## split each group of genes into group with called peaks and without called peaks
-{
-        ## for tumor only 
-        {
-            gene_to <- read.table("/Users/Yong/Yong/m6a_profiling/2_peak_calling/1_peaks/merge/bed30_61/0_merged_peaks/tumor_only.bed", as.is = T)
-            eg_g <- tumor_og
-            
-            idx_g <- match(eg_g, gene_to$V4)
-            idx_gs <- idx_g[!is.na(idx_g)]
-            eg_gs <- eg_g[!is.na(idx_g)]
-            gene_tos <- gene_to[idx_gs, ]
-            gene_tos_sl <- strsplit(gene_tos$V5, ",")       ## samples burdern tumor only called peaks 
-            
-            ano_diff_p <- vector()
-            
-            L <- length(eg_gs)
-            
-            expr_to_mean <- matrix(0, L, 3)
-            
-            for(i in 1:L)
-            {
-                idx_gg <- match(eg_gs[i], rownames(input_rpkm))
-                
-                expr_n <- input_rpkm[idx_gg, 1:10]
-                
-                idx_tp <- match(gene_tos_sl[[i]], colnames(input_rpkm))          ## tumor samples with tumor only methylated genes
-                expr_tp <- input_rpkm[idx_gg, idx_tp]            
-                
-                expr_tnp <- input_rpkm[idx_gg, -c(1:10, idx_tp)]
-                
-                expr_to_mean[i, ] <- c(log2(mean(expr_n + 1)), log2(mean(expr_tnp + 1)), log2(mean(expr_tp + 1)))
-                
-                expr <- c(expr_n, expr_tnp, expr_tp)
-                group <- c(rep(1, length(expr_n)), rep(2, length(expr_tnp)), rep(3, length(expr_tp)))
-                
-                dat <- data.frame(expr, group)
-                res.aov <- aov(expr ~ group, data = dat)
-                # Summary of the analysis
-                
-                ano_diff_p[i] <-  summary(res.aov)[[1]]["Pr(>F)"][[1]][1]
-                
-            }
-            ano_diff_padj <- p.adjust(ano_diff_p, method = "BH")
-            sum(ano_diff_padj < 0.05, na.rm = T)
-            sum(ano_diff_padj >= 0.05, na.rm = T)
-        }
-        
-        ## for normal only 
-        {
-            gene_to <- read.table("/Users/Yong/Yong/m6a_profiling/2_peak_calling/1_peaks/merge/bed30_61/0_merged_peaks/normal_only.bed", as.is = T)
-            eg_g <- normal_og
-            
-            idx_g <- match(eg_g, gene_to$V4)
-            idx_gs <- idx_g[!is.na(idx_g)]
-            eg_gs <- eg_g[!is.na(idx_g)]
-            gene_tos <- gene_to[idx_gs, ]
-            gene_tos_sl <- strsplit(gene_tos$V5, ",")       ## samples burdern normal only called peaks 
-            
-            ano_diff_p <- vector()
-            
-            L <- length(eg_gs)
-            expr_no_mean <- matrix(0, L, 3)
-            
-            for(i in 1:L)
-            {
-                idx_gg <- match(eg_gs[i], rownames(input_rpkm))
-                
-                expr_t <- input_rpkm[idx_gg, 11:61]       
-                
-                idx_np <- match(gene_tos_sl[[i]], colnames(input_rpkm))          ## tumor samples with tumor only methylated genes
-                expr_np <- input_rpkm[idx_gg, idx_np]            
-                
-                expr_nnp <- input_rpkm[idx_gg, -c(11:61, idx_np)]
-                
-                expr_no_mean[i, ] <- c(log2(mean(expr_nnp + 1)), log2(mean(expr_np + 1)), log2(mean(expr_t + 1)))
-                
-                
-                expr <- c(expr_np, expr_nnp, expr_t)
-                group <- c(rep(1, length(expr_np)), rep(2, length(expr_nnp)), rep(3, length(expr_t)))
-                
-                dat <- data.frame(expr, group)
-                res.aov <- aov(expr ~ group, data = dat)
-                # Summary of the analysis
-                
-                ano_diff_p[i] <-  summary(res.aov)[[1]]["Pr(>F)"][[1]][1]
-                
-            }
-            ano_diff_padj <- p.adjust(ano_diff_p, method = "BH")
-            sum(ano_diff_padj < 0.05, na.rm = T)
-            sum(ano_diff_padj >= 0.05, na.rm = T)
-        }
-        
-        ## for common peaks
-        {
-            gene_to <- read.table("/Users/Yong/Yong/m6a_profiling/2_peak_calling/1_peaks/merge/bed30_61/0_merged_peaks/shared_merge.bed", as.is = T)
-            eg_g <- common_og
-            
-            idx_g <- match(eg_g, gene_to$V4)
-            idx_gs <- idx_g[!is.na(idx_g)]
-            eg_gs <- eg_g[!is.na(idx_g)]
-            gene_tos <- gene_to[idx_gs, ]
-            gene_tos_sl <- strsplit(gene_tos$V5, ",")       ## samples burdern tumor only called peaks 
-            
-            ano_diff_p <- vector()
-            
-            L <- length(eg_gs)
-            
-            expr_com_mean <- matrix(0, L, 4)
-            
-            for(i in 1:L)
-            {
-                idx_gg <- match(eg_gs[i], rownames(input_rpkm))
-                
-                ## normal
-                idx_np <- match(gene_tos_sl[[i]], colnames(input_rpkm)[1:10], nomatch = 0)          ## tumor samples with tumor only methylated genes
-                expr_np <- input_rpkm[idx_gg, idx_np]            
-                expr_nnp <- input_rpkm[idx_gg, -c(11:61, idx_np)]
-                
-                ## tumor
-                idx_tp <- match(gene_tos_sl[[i]], colnames(input_rpkm)[11:61], nomatch = 0)          ## tumor samples with tumor only methylated genes
-                expr_tp <- input_rpkm[idx_gg, 11:61][idx_tp]            
-                
-                expr_tnp <- input_rpkm[idx_gg, -c(1:10)][-idx_tp]
-                
-                expr_com_mean[i, ] <- c(log2(mean(expr_nnp + 1)), log2(mean(expr_np + 1)), log2(mean(expr_tnp + 1)), log2(mean(expr_tp + 1)))
-                
-                
-                expr <- c(expr_nnp, expr_np, expr_tnp, expr_tp)
-                group <- c(rep(1, length(expr_nnp)), rep(2, length(expr_np)) ,  rep(3, length(expr_tnp)), rep(4, length(expr_tp)))
-                
-                dat <- data.frame(expr, group)
-                res.aov <- aov(expr ~ group, data = dat)
-                # Summary of the analysis
-                
-                ano_diff_p[i] <-  summary(res.aov)[[1]]["Pr(>F)"][[1]][1]
-                
-            }
-            ano_diff_padj <- p.adjust(ano_diff_p, method = "BH")
-            sum(ano_diff_padj < 0.05, na.rm = T)
-            sum(ano_diff_padj >= 0.05, na.rm = T)
-        }
-        
-        ##PLot with splited subgroups
-        {
-            og_ntm <- c(c(expr_com_mean), c(expr_no_mean), c(expr_to_mean))
-            og_ntm_g <- as.character(c(rep(1:4, each = nrow(expr_com_mean)), rep(5:7, each = nrow(expr_no_mean)), rep(8:10, each = nrow(expr_to_mean))))
-            col_f <- c("cadetblue3", "cadetblue3", "coral2", "coral2", "cadetblue3", "cadetblue3", "coral2", "cadetblue3", "coral2", "coral2")
-            lty_b <- c(2, 1, 2, 1, 2, 1, 2, 2, 2, 1 ) 
-            
-            dat <- data.frame(og_ntm, og_ntm_g)
-            
-            g <- ggplot(dat, aes(x = og_ntm_g, y = og_ntm, fill = og_ntm_g)) + geom_boxplot(outlier.shape=NA, lty = lty_b)
-            g <- g + theme_bw()  + theme(axis.line = element_line(colour = "black"),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),panel.border =  element_blank(),  panel.background = element_blank()) 
-            g <- g + scale_fill_manual( values = col_f) + scale_color_manual( values =  col_f) + ylim(0, 8)
-            g <- g + theme(legend.position = "none")
-            ggsave("gene_expr_tumor_normal_unique_or_common_boxplot_splitgroups.pdf",  width = 4, height = 3, units = "in")
-        }
-    }
-
-}
-    
-
-###########################################################
-## association between peak counts and clinical information
-###########################################################
-{
-peak_cnt_t <- peak_cnt[11:61, ]
-idx <- order(peak_cnt_t$count)
-peak_cnt_ts <- peak_cnt_t[idx, ]
-
-s_info <- read.table("/Users/Yong/Yong/m6a_profiling/2_peak_calling/1_peaks/merge/sample_info.txt", header = T)  
-idx_s <- match(peak_cnt_ts$sample, s_info$helab_id)
-s_infos <- s_info[idx_s, ]
-
-count_s <- peak_cnt_ts$count
-names(count_s) <- s_infos$pathstage
-barplot(count_s, las = 2, cex.names = 0.8)
-
-library("s2dverification")       # for color bar
-
-## sex
-N = length(idx_s)
-lims <- 1:52
-sex_c <- rep("pink", N)                           # for Female
-idx_t <- !is.na(match(s_infos$sex, "M"))          # for Male
-sex_c[idx_t] <- "blue"
-ColorBar(lims, sex_c, vertical = F, draw_ticks = F, draw_separators = T)
-h <- table(sex_c[27:51])
-l <- table(sex_c[1:25])
-sex_tt <- cbind(h, l)
-chisq.test(sex_tt)
-
-## smoking history 
-smoking_c <- rep("green", N)
-idx_t <- !is.na(match(s_infos$smoking, "Current"))
-smoking_c[idx_t] <- "red"
-idx_t <- !is.na(match(s_infos$smoking, "Ex-Smoker"))
-smoking_c[idx_t] <- "orange"
-ColorBar(lims, smoking_c, vertical = F, draw_ticks = F, draw_separators = T)
-h <- table(smoking_c[27:51])
-l <- table(smoking_c[1:25])
-smoking_tt <- cbind(h, l)
-chisq.test(smoking_tt)
-
-## xenograph outcome
-xeno_c <- rep("gray", N)
-idx_t <- !is.na(match(s_infos$xeno, "Y"))
-xeno_c[idx_t] <- "red"
-idx_t <- !is.na(match(s_infos$xeno, "N"))
-xeno_c[idx_t] <- "blue"
-ColorBar(lims, xeno_c, vertical = F, draw_ticks = F, draw_separators = T)
-h <- table(xeno_c[27:51])
-l <- table(xeno_c[1:25])
-xeno_tt <- cbind(h, l)
-chisq.test(xeno_tt)
 }

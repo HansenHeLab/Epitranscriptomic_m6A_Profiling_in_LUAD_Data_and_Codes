@@ -1,5 +1,0 @@
-gene_name	function METTL3	writerMETTL14	writerWTAP	writerALKBH5	eraserFTO	eraserYTHDF1	readerYTHDF2	readerYTHDF3	readerYTHDC1	reader
-YTHDC2	reader
-FMR1	reader
-G3BP1	reader
-

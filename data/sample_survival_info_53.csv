@@ -1,0 +1,54 @@
+helab_id,phlcid,TB_id,exclude_outcome,reason_excl_outcome,exclude_xeno,reason_excl_xeno,age,sex,pathStage,hist,smoking,preop_chemo,preop_rad,adj_ch,adj_rad,xeno,surv_time,status,dfs_time,rec,mutation
+tumor2,25,27690,,,,,76.04,F,2A,ADC,Ex-Smoker,Y,N,N,N,N,10.72,A,10.72,N,NA
+tumor3,54,30112,,,,,66.83,F,2A,ADC,Ex-Smoker,N,N,N,Y,N,9.58,A,0.9,Y,KRAS
+tumor4,59,30492,Y,stage,,,55.69,M,4,ADC,Ex-Smoker,N,Y,N,N,N,NA,A,NA,N,No
+tumor5,655,31159,,,,,59.98,M,1B,ADC,Ex-Smoker,N,N,N,N,Y,1.25,D,0.93,Y,No
+tumor6,67,31413,,,,,51.01,F,1A,ADC,Ex-Smoker,N,N,N,N,N,9.32,A,9.32,N,KRAS
+tumor7,83,32595,Y,stage,,,78.18,M,4,ADC,Ex-Smoker,N,N,N,N,Y,NA,D,NA,Y,KRAS
+tumor8,91,33471,,,,,77.52,M,1A,ADC,Ex-Smoker,N,N,N,N,N,8.76,A,4.07,Y,KRAS
+tumor9,93,33711,Y,stage,,,64.67,M,3B,ADC,Current,N,N,N,N,N,NA,D,NA,Y,No
+tumor10,96,33836,,,,,81.42,F,1A,ADC,Ex-Smoker,N,N,N,N,N,4.42,A,4.42,N,MET
+tumor11,97,33850,,,,,81.93,F,1B,ADC,Never,N,N,N,N,N,1.51,A,1.51,N,EGFR
+tumor12,105,34434,,,Y,P1 Lymphoma,81.74,F,1B,ADC,Never,N,N,N,N,N,4.52,A,4.52,N,No
+tumor13,109,34878,,,,,52.89,F,1B,ADC,Current,N,N,Y,Y,N,7.97,A,7.97,N,No
+tumor14,110,34968,,,,,51.33,F,1B,ADC,Ex-Smoker,N,N,Y,N,Y,10.77,A,1.55,Y,KRAS
+tumor15,111,35011,,,,,65.2,M,2A,ADC,Ex-Smoker,N,N,N,N,Y,8.76,A,1.54,Y,No
+tumor16,114,35148,,,,,71.48,M,2B,ADC,Ex-Smoker,N,N,Y,N,N,5.96,A,5.96,N,KRAS
+tumor17,116,35277,,,,,62.03,M,2B,ADC,Current,N,N,N,N,Y,8.93,A,0.41,Y,KRAS
+tumor18,117,35356,Y,stage,Y,P1 Lymphoma,67.75,M,3B,ADC,Ex-Smoker,N,N,Y,Y,N,NA,D,NA,Y,No
+tumor19,119,35480,,,,,65.11,F,3A,ADC,Ex-Smoker,N,N,Y,N,Y,4.24,D,2.39,Y,KRAS
+tumor20,120,35689,,,,,64.12,M,2B,ADC,Current,N,N,Y,N,Y,4.91,A,1.66,Y,KRAS
+tumor21,124,36130,,,,,54.08,M,3A,ADC,Ex-Smoker,N,N,Y,N,N,0.93,D,0.41,Y,No
+tumor22,127,36451,,,Y,P1 Lymphoma,52.96,M,1A,ADC,Ex-Smoker,N,N,N,N,N,8.01,A,8.01,N,No
+tumor23,128,36563,,,,,83.1,F,1B,ADC,Ex-Smoker,N,N,N,N,N,2.59,A,0.49,Y,KRAS
+tumor24,129,36831,,,Y,P1 Lymphoma,73.39,M,1A,ADC,Ex-Smoker,N,N,N,N,N,7.13,D,7.13,N,No
+tumor25,134,37015,Y,stage,,,61.31,M,4,Pleom ADC,Current,N,N,Y,N,Y,NA,D,NA,N,No
+tumor26,137,37096,,,,,46.69,F,3A,ADC,Never,N,N,Y,Y,Y,8.29,D,1.12,Y,EGFR
+tumor27,143,38730,,,Y,P1 Lymphoma,50.7,F,1B,ADC,Current,N,N,N,N,N,5.39,A,5.39,N,NA
+tumor28,146,39034,,,Y,P1 Lymphoma,66.87,F,1A,ADC,Never,N,N,N,N,N,8.57,A,7.21,Y,EGFR
+tumor29,148,39427,,,,,54.8,F,3A,ADC,Never,N,N,Y,Y,Y,1.05,D,0.85,Y,EGFR
+tumor30,150,40549,,,,,72.8,F,3A,ADC,Ex-Smoker,N,N,Y,Y,N,1.06,D,1.06,N,No
+tumor31,151,40927,,,,,57.53,F,1B,ADC,Ex-Smoker,N,N,Y,N,Y,2.51,D,0.72,Y,KRAS
+tumor32,155,41768,,,,,52.43,F,3A,ADC,Never,N,N,N,N,Y,4.21,D,0.69,Y,KRAS
+tumor33,160,43047,,,,,68.22,F,1A,ADC,Never,N,N,N,N,N,8.19,A,8.19,N,EGFR
+tumor34,164,44428,,,,,63.61,F,2B,ADC,Ex-Smoker,N,N,Y,N,Y,2.43,D,1.84,Y,EGFR
+tumor35,167,44847,,,,,69.42,F,1B,ADC,Never,N,N,N,N,N,2.15,A,2.15,N,KRAS
+tumor36,168,44888,,,,,58.89,M,1A,ADC,Current,N,N,N,Y,Y,8.11,A,7.77,Y,No
+tumor37,178,48087,,,,,55.5,F,2B,ADC,Current,N,N,N,N,Y,3.58,A,3.58,N,KRAS
+tumor38,180,48388,,,,,72.22,M,2B,ADC,Current,N,N,N,N,Y,3.44,D,3.42,Y,PIK3CA
+tumor39,181,48468,Y,stage,,,54.41,F,4,ADC,Ex-Smoker,N,N,N,N,Y,NA,D,NA,Y,KRAS
+tumor40,191,52408,Y,stage,,,44.08,F,4,ADC,Current,N,N,Y,N,Y,NA,D,NA,Y,KRAS
+tumor41,192,52648,,,,,46.33,F,2A,ADC,Never,N,N,Y,N,Y,7.19,D,2.28,Y,EGFR
+tumor42,194,54030,,,,,83.99,M,1B,ADC,Ex-Smoker,N,N,N,N,Y,0.71,A,0.71,N,KRAS
+tumor43,211,58030,,,,,46.96,F,2B,ADC,Ex-Smoker,N,N,Y,N,Y,3.8,D,3.11,Y,KRAS 
+tumor44,218,58387,,,Y,P1 Lymphoma,74.48,F,1A,ADC,Never,N,N,N,N,N,7.05,A,0.53,Y,NA
+tumor45,227,58908,,,,,65.72,F,2B,ADC,Never,N,N,N,Y,N,3.52,A,3.52,N,No
+tumor47,233,59249,,,,,79.98,M,2A,ADC,Ex-Smoker,N,N,Y,N,N,5.75,D,3.2,Y,EGFR
+tumor48,235,59331,,,,,70.6,F,3A,ADC,Current,N,N,Y,N,Y,1.72,D,1.66,Y,KRAS
+tumor49,239,59443,,,,,66.66,M,1A,ADC,Ex-Smoker,Y,Y,Y,N,Y,3.56,D,3.56,N,No
+tumor50,241,59674,,,Y,P1 Lymphoma,64.07,F,1B,ADC,Never,N,N,N,N,N,5.04,A,5.04,N,NA
+tumor51,244,59769,,,,,71.73,M,1B,ADC,Never,N,N,N,N,N,6.68,A,6.68,N,EGFR
+tumor52,10,24479,,,,,78.29,M,3A,ADC,Ex-Smoker,N,N,N,N,N,3.42,D,3.42,N,No
+tumor53,11,24520,,,,,56.2,M,1B,ADC,Current,N,N,Y,N,N,9.72,A,9.72,N,No
+tumor54,21,26884,,,,,76.67,F,2A,ADC,Ex-Smoker,N,N,Y,N,N,5.22,A,5.22,N,No
+tumor55,29,28369,,,,,74.57,F,1A,ADC,Never,N,N,N,N,N,4.76,A,4.76,N,EGFR
